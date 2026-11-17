@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New York City - Travel Summary</title>
+  <!-- Favicon: Yellow MTA Circle with Black 'N' -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23FCCC0A'/%3E%3Ctext x='32' y='45' font-family='Helvetica Neue, Helvetica, Arial, sans-serif' font-size='38' font-weight='bold' fill='%23000000' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Inter & Helvetica Neue Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Manhattan"', '"Helvetica Neue"', 'Helvetica', 'Inter', 'Arial', 'sans-serif'],
+          },
+          colors: {
+            mta: {
+              red: '#EE352E',     // 1, 2, 3
+              green: '#00933C',   // 4, 5, 6
+              purple: '#B933AD',  // 7
+              blue: '#0039A6',    // A, C, E
+              orange: '#FF6319',  // B, D, F, M
+              lime: '#6CBE45',    // G
+              brown: '#996633',   // J, Z
+              grey: '#A7A9AC',    // L
+              yellow: '#FCCC0A',  // N, Q, R, W
+              shuttle: '#808183'  // S
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Manhattan Custom Typeface (@font-face) */
+    @font-face {
+      font-family: 'Manhattan';
+      src: url('./Manhattan.woff2') format('woff2'),
+           url('./Manhattan.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* Vignelli Swiss Grid & Transit Rules */
+    :root {
+      --bg-primary: #FFFFFF;
+      --text-primary: #000000;
+      --border-heavy: #000000;
+      --border-subtle: #E5E5E5;
+      --card-bg: #F9F9F9;
+    }
+
+    html.dark {
+      --bg-primary: #0A0A0A;
+      --text-primary: #FFFFFF;
+      --border-heavy: #FFFFFF;
+      --border-subtle: #262626;
+      --card-bg: #141414;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: "Manhattan", "Helvetica Neue", Helvetica, Inter, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Classic MTA Circular Bullet */
+    .mta-bullet {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      font-weight: 700;
+      line-height: 1;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    /* Thick Vignelli Divider Rule */
+    .vignelli-rule-heavy {
+      border-top: 4px solid var(--border-heavy);
+    }
+
+    .tracking-vignelli {
+      letter-spacing: -0.035em !important;
+    }
+
+    .vignelli-rule-medium {
+      border-top: 2px solid var(--border-heavy);
+    }
+
+    .vignelli-rule-thin {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* Transit Route Connector Styling */
+    .route-track {
+      position: relative;
+    }
+
+    /* Custom Scrollbar for Sidebar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #808183;
+      border-radius: 3px;
+    }
+
+    /* Print Stylesheet: Force light mode, expand all days, hide interactive UI */
+    @media print {
+      body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+      }
+      header {
+        position: static !important;
+        border-bottom-color: #000000 !important;
+      }
+      #theme-toggle,
+      #toggle-all-btn,
+      .accordion-icon,
+      footer {
+        display: none !important;
+      }
+      .accordion-panel {
+        display: block !important;
+      }
+      .day-section {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#FCCC0A] selection:text-black">
+
+  <!-- ===================================================================== -->
+  <!-- EDIT YOUR 13-DAY ITINERARY HERE (EASY JAVASCRIPT OBJECT)              -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * NYC2026 ITINERARY DATA
+     * Simply edit the title, borough, lineCode, colorHex, textColor, summary,
+     * stops, and imageUrl for any of the 13 days below.
+     * 
+     * Authentic Vignelli MTA Colors Reference:
+     * Red (1/2/3):     #EE352E (white text)
+     * Green (4/5/6):   #00933C (white text)
+     * Purple (7):      #B933AD (white text)
+     * Blue (A/C/E):    #0039A6 (white text)
+     * Orange (B/D/F):  #FF6319 (white text)
+     * Lime (G):        #6CBE45 (white text)
+     * Brown (J/Z):     #996633 (white text)
+     * Grey (L):        #A7A9AC (white text)
+     * Yellow (N/Q/R):  #FCCC0A (black text)
+     * Shuttle (S):     #808183 (white text)
+     */
+    const ITINERARY_DATA = [
+      {
+        day: 1,
+        dateLabel: "DAY 01",
+        shortDate: "24/11",
+        navTitle: "Arriving in New York",
+        lineBadge: "1",
+        color: "#0039A6",
+        textColor: "#FFFFFF",
+        borough: "TAIWAN TO NEW YORK",
+        title: "November 24 - Tuesday",
+        summary: "Arriving in Newark at 15:55 - Taxi to Manhattan, Check into hotel, walk around to have dinner nearby.",
+        stops: ["Kaohsiung KHH", "Tokyo NRT", "New York EWR"],
+        imageUrl: "https://freehandhotels.com/wp-content/uploads/2025/05/IMGL1755-e1793633274940.jpg?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 2,
+        dateLabel: "DAY 02",
+        shortDate: "25/11",
+        navTitle: "Lower Manhattan & Wall St",
+        lineBadge: "2",
+        color: "#00933C",
+        textColor: "#FFFFFF",
+        borough: "MANHATTAN — MIDTOWN",
+        title: "November 25 - Wednesday",
+        summary: "Placeholder itinerary for Day 02. Explore the historic canyons of Wall Street, Battery Park waterfront views, and the Oculus transit hub.",
+        stops: ["Fulton St", "Wall St", "South Ferry"],
+        imageUrl: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 3,
+        dateLabel: "DAY 03",
+        shortDate: "26/11",
+        navTitle: "Thanksgiving's Day",
+        lineBadge: "3",
+        color: "#00933C",
+        textColor: "#FFFFFF",
+        borough: "MANHATTAN — UPPER WEST",
+        title: "November 26 - Thursday",
+        summary: "Thanksgiving parade starting at 9:30. A 2.5-mile route through Manhattan, ending at Macy’s flagship store in Herald Square.",
+        stops: ["72 St", "86 St", "Columbus Circle"],
+        imageUrl: "https://parade.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_1200/MjA5NjYzNTQzODkxNDY5NDcy/2023-macys-thanksgiving-day-parade.jpg"
+      },
+      {
+        day: 4,
+        dateLabel: "DAY 04",
+        shortDate: "27/11",
+        navTitle: "Grand Central & Fifth Ave",
+        lineBadge: "4",
+        color: "#00933C",
+        textColor: "#FFFFFF",
+        borough: "MANHATTAN — EAST SIDE",
+        title: "November 27 - Friday",
+        summary: "Placeholder itinerary for Day 04. Admire the celestial ceiling at Grand Central, visit the NY Public Library, and walk north along Fifth Avenue.",
+        stops: ["Grand Central - 42 St", "59 St", "86 St"],
+        imageUrl: "https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 5,
+        dateLabel: "DAY 05",
+        shortDate: "28/11",
+        navTitle: "Bronx Botanical & Arthur Ave",
+        lineBadge: "5",
+        color: "#EE352E",
+        textColor: "#FFFFFF",
+        borough: "BRONX — UPTOWN EXPRESS",
+        title: "November 28 - Saturday",
+        summary: "Placeholder itinerary for Day 05. Ride the Lexington Avenue Express uptown for lush glasshouse conservatories and authentic Bronx espresso.",
+        stops: ["149 St - Grand Concourse", "Fordham Rd", "Bedford Park Blvd"],
+        imageUrl: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 6,
+        dateLabel: "DAY 06",
+        shortDate: "29/11",
+        navTitle: "SoHo & Little Italy Walk",
+        lineBadge: "6",
+        color: "#EE352E",
+        textColor: "#FFFFFF",
+        borough: "MANHATTAN — DOWNTOWN LOCAL",
+        title: "November 29 - Sunday",
+        summary: "Placeholder itinerary for Day 06. Walk the cobblestone streets of SoHo, browse independent design bookstores, and enjoy lunch in Little Italy.",
+        stops: ["Bleecker St", "Spring St", "Canal St"],
+        imageUrl: "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 7,
+        dateLabel: "DAY 07",
+        shortDate: "30/11",
+        navTitle: "Flushing & Queens Food Tour",
+        lineBadge: "7",
+        color: "#B933AD",
+        textColor: "#FFFFFF",
+        borough: "QUEENS — FLUSHING LOCAL",
+        title: "November 30 - Monday",
+        summary: "Placeholder itinerary for Day 07. Take the elevated 7 train across Queens for Unisphere views and world-class regional dumplings.",
+        stops: ["Queensboro Plaza", "74 St - Broadway", "Flushing - Main St"],
+        imageUrl: "https://images.unsplash.com/photo-1555109307-f7d9da25c244?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 8,
+        dateLabel: "DAY 08",
+        shortDate: "01/12",
+        navTitle: "Hamilton",
+        lineBadge: "A",
+        color: "#FCCC0A",
+        textColor: "#000000",
+        borough: "Broadway — West Side",
+        title: "December 1 - Tuesday",
+        summary: "Walking around, Hamilton Show at 19:00",
+        stops: ["34 St - Penn Station", "14 St", "W 4 St - Wash Sq"],
+        imageUrl: "https://images.ctfassets.net/6pezt69ih962/4dHzEqfsxev4o796gh5ZAG/43414ac30469c21ea66ddc9e6db54466/hamilton_new-1200x600-NYTG.jpg"
+      },
+      {
+        day: 9,
+        dateLabel: "DAY 09",
+        shortDate: "02/12",
+        navTitle: "Brooklyn Bridge & DUMBO",
+        lineBadge: "C",
+        color: "#FCCC0A",
+        textColor: "#000000",
+        borough: "BROOKLYN — WATERFRONT",
+        title: "December 2 - Wednesday",
+        summary: "Placeholder itinerary for Day 09. Early morning walk across the Brooklyn Bridge pedestrian promenade into DUMBO and Brooklyn Bridge Park.",
+        stops: ["High St", "Jay St - MetroTech", "Hoyt - Schermerhorn"],
+        imageUrl: "https://images.unsplash.com/photo-1499092346589-b9b6be3e94b2?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 10,
+        dateLabel: "DAY 10",
+        shortDate: "03/12",
+        navTitle: "Greenwich Village & Jazz",
+        lineBadge: "F",
+        color: "#FF6319",
+        textColor: "#FFFFFF",
+        borough: "MANHATTAN — LOWER EAST",
+        title: "December 3 - Thursday",
+        summary: "Placeholder itinerary for Day 10. Coffee around Washington Square Park, record shops on Bleecker, and evening jazz sets.",
+        stops: ["W 4 St", "Broadway - Lafayette", "2 Av"],
+        imageUrl: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 11,
+        dateLabel: "DAY 11",
+        shortDate: "04/12",
+        navTitle: "Williamsburg & Greenpoint",
+        lineBadge: "G",
+        color: "#6CBE45",
+        textColor: "#FFFFFF",
+        borough: "BROOKLYN — CROSSTOWN",
+        title: "December 4 - Friday",
+        summary: "Placeholder itinerary for Day 11. Ride the crosstown G train to explore North Brooklyn bakeries, Domino Park, and skyline sunsets.",
+        stops: ["Greenpoint Av", "Nassau Av", "Metropolitan Av"],
+        imageUrl: "https://images.unsplash.com/photo-1546436836-07a91091f160?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        day: 12,
+        dateLabel: "DAY 12",
+        shortDate: "05/12",
+        navTitle: "LEAVING NEW YORK",
+        lineBadge: "L",
+        color: "#0039A6",
+        textColor: "#FFFFFF",
+        borough: "Leaving New York",
+        title: "December 5 - Saturday",
+        summary: "Leaving early for Newark flight at 8:00. Stopover in Chicago from 9:37 to 10:40. Departing for Tokyo at 10:40 - 13h 45m flight.",
+        stops: ["Newark EWR (8:00)", "Chicago ORD (9:37)","Tokyo NRT (10:40)",],
+        imageUrl: "https://cdn.britannica.com/83/288683-050-B24A6449/passengers-walking-through-chicago-ohare-international-airport-ORD-illinois.jpg"
+      },
+      {
+        day: 13,
+        dateLabel: "DAY 13",
+        shortDate: "06/12",
+        navTitle: "Back To Taiwan",
+        lineBadge: "N",
+        color: "#0039A6",
+        textColor: "#FFFFFF",
+        borough: "BACK TO TAIWAN",
+        title: "December 6 - Sunday",
+        summary: "Landing in Tokyo at 15:15. Flight for Kaohsiung at 17:50 - arriving at 21:25. ",
+        stops: ["Tokyo NRT (17:50)", "Kaohsiung KHH (21:25)",],
+        imageUrl: "https://i0.wp.com/thedesignair.net/wp-content/uploads/2021/06/3431-ua-737-max8_ife-4b-sfo2.jpg"
+      }
+    ];
+  </script>
+
+  <!-- ===================================================================== -->
+  <!-- TOP FIXED HEADER (VIGNELLI MTA SIGNAGE BAR)                           -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 bg-[var(--bg-primary)] border-b-4 border-[var(--border-heavy)] transition-colors duration-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-24 flex items-center justify-between">
+      
+      <!-- Brand Identity: NYC 2026 + Larger Vignelli Bullets -->
+      <a href="#top" class="flex items-center gap-3.5 sm:gap-4 group focus:outline-none">
+        <div class="flex items-center -space-x-2">
+          <span class="mta-bullet w-10 h-10 sm:w-12 sm:h-12 text-base sm:text-xl bg-[#FCCC0A] text-black ring-2 ring-[var(--bg-primary)]">N</span>
+          <span class="mta-bullet w-10 h-10 sm:w-12 sm:h-12 text-base sm:text-xl bg-[#FF6319] text-white ring-2 ring-[var(--bg-primary)]">Y</span>
+          <span class="mta-bullet w-10 h-10 sm:w-12 sm:h-12 text-base sm:text-xl bg-[#0039A6] text-white ring-2 ring-[var(--bg-primary)]">C</span>
+        </div>
+        <span class="text-2xl sm:text-4xl font-black leading-none tracking-[-0.035em] tracking-vignelli">New York City 2026</span>
+      </a>
+
+      <!-- Right Controls: Dark Mode Toggle & Mobile Menu Button -->
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- Dark / Light Mode Switch (Icon Only, Sized to Match Accordion Buttons) -->
+        <button 
+          id="theme-toggle"
+          type="button"
+          aria-label="Toggle Dark Mode"
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[var(--border-heavy)] flex items-center justify-center hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors cursor-pointer"
+        >
+          <!-- Moon Icon (Shown in Light Mode) -->
+          <svg id="icon-moon" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <!-- Sun Icon (Shown in Dark Mode) -->
+          <svg id="icon-sun" class="w-4 h-4 sm:w-5 sm:h-5 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" />
+            <path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN LAYOUT: 13-DAY ACCORDION TIMELINE CONTENT                        -->
+  <!-- ===================================================================== -->
+  <div id="top" class="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 pt-[26px] sm:pt-[42px] pb-8 sm:pb-12">
+
+    <!-- MAIN CONTENT: 13 ACCORDION SECTIONS WITH SUBWAY TRACK VISUALS -->
+    <main class="w-full min-w-0">
+      
+      <!-- Intro Banner -->
+      <section class="mb-10 sm:mb-14">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <span class="px-2.5 py-1 text-xs font-black uppercase bg-black text-white dark:bg-[#FCCC0A] dark:text-black">
+            Express Service
+          </span>
+          <span class="text-xs font-bold uppercase">
+            Autumn / 2026
+          </span>
+        </div>
+        <div class="flex items-end justify-between gap-4">
+          <h1 class="text-4xl sm:text-6xl font-black leading-[0.95] tracking-[-0.035em] tracking-vignelli">
+            Daily Travel Itinerary.
+          </h1>
+          <button
+            id="toggle-all-btn"
+            type="button"
+            aria-label="Expand All"
+            class="shrink-0 flex items-center gap-2.5 group cursor-pointer focus:outline-none"
+          >
+            <span id="toggle-all-label" class="text-xs sm:text-sm font-bold leading-none group-hover:underline decoration-2 underline-offset-4">
+              Expand All
+            </span>
+            <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[var(--border-heavy)] bg-black text-white dark:bg-white dark:text-black flex items-center justify-center transition-transform duration-200">
+              <svg id="toggle-all-icon" class="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-200" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9.8 2H14.2V14.2L18.8 9.6L21.7 12.5L12 22.2L2.3 12.5L5.2 9.6L9.8 14.2V2Z" />
+              </svg>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 13-Day Accordion Sections Container -->
+      <div id="itinerary-container" class="relative space-y-[19px] sm:space-y-[27px]">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+      <!-- End of Line Footer -->
+      <footer class="mt-8 pt-2 flex items-center justify-center pb-4">
+        <a 
+          href="#top" 
+          class="px-5 py-2.5 rounded-full border-2 border-[var(--border-heavy)] bg-black text-white dark:bg-white dark:text-black text-xs font-black uppercase hover:bg-transparent hover:text-black dark:hover:bg-transparent dark:hover:text-white transition-colors"
+        >
+          Back to Top
+        </a>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC: ACCORDION RENDERING & DARK MODE                    -->
+  <!-- ===================================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('itinerary-container');
+
+      // Fallback image handler if Unsplash or custom URL fails
+      window.handleImgError = function(img, dayNum) {
+        img.onerror = null;
+        img.src = `https://placehold.co/1200x675/111111/FFFFFF?text=NYC2026+%E2%80%A2+DAY+${String(dayNum).padStart(2, '0')}`;
+      };
+
+      // Session storage state for expanded accordions
+      const STORAGE_KEY = 'nyc2026-open-days';
+      let openDays = new Set();
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
+        if (Array.isArray(saved)) openDays = new Set(saved);
+      } catch (e) {
+        openDays = new Set();
+      }
+
+      function saveOpenDays() {
+        try {
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(openDays)));
+        } catch (e) {
+          // Ignore storage quota errors
+        }
+      }
+
+      // Format valid clock times (e.g., 15:55, 9:30, 3:15 PM) in bold
+      function formatTimesBold(text) {
+        return text.replace(/\b((?:[01]?\d|2[0-3]):[0-5]\d(?:\s?[AaPp][Mm])?)\b/g, '<strong class="font-bold">$1</strong>');
+      }
+
+      // 1. Render Main 13-Day Accordion Sections
+      ITINERARY_DATA.forEach((item, index) => {
+        const sectionId = `day-${item.day}`;
+        const panelId = `panel-${item.day}`;
+        const isLast = index === ITINERARY_DATA.length - 1;
+        const isInitiallyOpen = openDays.has(item.day);
+
+        // --- Main Section Card with Vignelli Map Route Visuals ---
+        const section = document.createElement('article');
+        section.id = sectionId;
+        section.className = 'day-section scroll-mt-24 sm:scroll-mt-28 relative pl-12 sm:pl-16';
+
+        // Vertical Transit Track Line colored to match the NEXT stop (centered in day circles)
+        const nextItem = !isLast ? ITINERARY_DATA[index + 1] : item;
+        const trackLineHtml = !isLast 
+          ? `<div 
+               class="absolute left-[17.5px] sm:left-[25px] top-10 -bottom-[23px] sm:-bottom-[31px] w-[5px] sm:w-[6px] rounded-full" 
+               style="background-color: ${nextItem.color};"
+             ></div>`
+          : '';
+
+        // Horizontal Transfer Station Dots (Stops) with fluid full-width connecting lines & wrapping on small screens
+        const stopsHtml = item.stops.map((stop, sIdx) => {
+          const isFirst = sIdx === 0;
+          if (isFirst) {
+            return `
+              <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <span class="w-3 h-3 rounded-full border-[3px] border-[var(--border-heavy)] bg-[var(--bg-primary)] inline-block shrink-0"></span>
+                <span class="text-xs sm:text-sm font-bold whitespace-nowrap">${stop}</span>
+              </div>
+            `;
+          }
+          return `
+            <div class="flex-1 flex items-center min-w-fit">
+              <div class="flex-1 min-w-[16px] h-[3px] bg-[var(--border-heavy)] opacity-30 mr-1.5 sm:mr-4 ${sIdx > 1 ? 'sm:ml-4' : 'ml-1.5 sm:ml-4'}"></div>
+              <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <span class="w-3 h-3 rounded-full border-[3px] border-[var(--border-heavy)] bg-[var(--bg-primary)] inline-block shrink-0"></span>
+                <span class="text-xs sm:text-sm font-bold whitespace-nowrap">${stop}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        section.innerHTML = `
+          ${trackLineHtml}
+
+          <!-- Day Number Bullet Positioned on the Transit Spine -->
+          <div 
+            class="mta-bullet w-10 h-10 sm:w-14 sm:h-14 text-lg sm:text-2xl absolute left-0 top-0 ring-4 ring-[var(--bg-primary)] shadow-sm z-10"
+            style="background-color: ${item.color}; color: ${item.textColor};"
+          >
+            ${item.day}
+          </div>
+
+          <!-- Accordion Header Trigger (Number Bullet + Title + Day/Location Visible Initially) -->
+          <button
+            type="button"
+            class="accordion-trigger w-full text-left border-t-4 border-[var(--border-heavy)] pt-3 pb-2 flex items-center justify-between gap-4 group cursor-pointer focus:outline-none"
+            data-day="${item.day}"
+            aria-expanded="${isInitiallyOpen ? 'true' : 'false'}"
+            aria-controls="${panelId}"
+          >
+            <div>
+              <h2 class="text-2xl sm:text-4xl font-black leading-tight tracking-[-0.035em] tracking-vignelli group-hover:underline decoration-4 underline-offset-4">
+                ${item.borough.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()).replace(/\bTo\b/g, 'to')}
+              </h2>
+              <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                <span class="text-xs sm:text-sm font-bold uppercase">${item.title.includes(' - ') ? item.title.split(' - ').reverse().join(' / ') : item.title}</span>
+              </div>
+            </div>
+            <span class="accordion-icon shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-[var(--border-heavy)] flex items-center justify-center transition-transform duration-200 ${isInitiallyOpen ? 'rotate-180' : ''} group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9.8 2H14.2V14.2L18.8 9.6L21.7 12.5L12 22.2L2.3 12.5L5.2 9.6L9.8 14.2V2Z" />
+              </svg>
+            </span>
+          </button>
+
+          <!-- Collapsible Accordion Content -->
+          <div id="${panelId}" class="accordion-panel ${isInitiallyOpen ? '' : 'hidden'} pt-4 pb-4">
+            <!-- Subway Station Transfer Bar (Route Map Visual) -->
+            <div class="mb-6 py-3 px-4 rounded-[6px] bg-[var(--card-bg)] border border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center gap-y-2 w-full">
+              <span class="text-[10px] font-black uppercase opacity-50 sm:mr-4 shrink-0">Stops</span>
+              <div class="flex flex-wrap items-center justify-between gap-y-2.5 flex-1 w-full min-w-0">
+                ${stopsHtml}
+              </div>
+            </div>
+
+            <!-- Responsive Photo Frame -->
+            <figure class="mb-5 overflow-hidden rounded-[6px] border border-[var(--border-heavy)] bg-neutral-900 aspect-[16/9]">
+              <img 
+                src="${item.imageUrl}" 
+                alt="${item.title}"
+                loading="lazy"
+                onerror="handleImgError(this, ${item.day})"
+                class="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+              />
+            </figure>
+
+            <!-- Description / Notes -->
+            <p class="text-sm sm:text-base leading-relaxed w-full">
+              ${formatTimesBold(item.summary)}
+            </p>
+          </div>
+          ${isLast ? '<div class="border-t-4 border-[var(--border-heavy)] mt-[19px] sm:mt-[27px]"></div>' : ''}
+        `;
+
+        container.appendChild(section);
+      });
+
+      // 2. Accordion Toggle & Expand/Collapse All Interactions
+      const toggleAllBtn = document.getElementById('toggle-all-btn');
+      const toggleAllIcon = document.getElementById('toggle-all-icon');
+      const toggleAllLabel = document.getElementById('toggle-all-label');
+      const triggers = Array.from(document.querySelectorAll('.accordion-trigger'));
+
+      function setAccordionState(trigger, expand) {
+        const dayNum = Number(trigger.getAttribute('data-day'));
+        const panelId = trigger.getAttribute('aria-controls');
+        const panel = document.getElementById(panelId);
+        const icon = trigger.querySelector('.accordion-icon');
+
+        trigger.setAttribute('aria-expanded', String(expand));
+        if (expand) {
+          panel.classList.remove('hidden');
+          icon.classList.add('rotate-180');
+          openDays.add(dayNum);
+        } else {
+          panel.classList.add('hidden');
+          icon.classList.remove('rotate-180');
+          openDays.delete(dayNum);
+        }
+      }
+
+      function syncToggleAllLabel() {
+        const allOpen = openDays.size === ITINERARY_DATA.length;
+        const labelText = allOpen ? 'Collapse All' : 'Expand All';
+        toggleAllLabel.textContent = labelText;
+        toggleAllBtn.setAttribute('aria-label', labelText);
+        if (allOpen) {
+          toggleAllIcon.classList.add('rotate-180');
+        } else {
+          toggleAllIcon.classList.remove('rotate-180');
+        }
+      }
+
+      syncToggleAllLabel();
+
+      triggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+          const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+          setAccordionState(trigger, !isExpanded);
+          saveOpenDays();
+          syncToggleAllLabel();
+        });
+      });
+
+      toggleAllBtn.addEventListener('click', () => {
+        const shouldExpandAll = openDays.size < ITINERARY_DATA.length;
+        triggers.forEach(trigger => setAccordionState(trigger, shouldExpandAll));
+        saveOpenDays();
+        syncToggleAllLabel();
+      });
+
+      // 3. Dark / Light Mode Toggle Logic
+      const htmlEl = document.documentElement;
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      const iconMoon = document.getElementById('icon-moon');
+      const iconSun = document.getElementById('icon-sun');
+
+      function applyTheme(isDark) {
+        if (isDark) {
+          htmlEl.classList.add('dark');
+          iconMoon.classList.add('hidden');
+          iconSun.classList.remove('hidden');
+          themeToggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+        } else {
+          htmlEl.classList.remove('dark');
+          iconMoon.classList.remove('hidden');
+          iconSun.classList.add('hidden');
+          themeToggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+        }
+      }
+
+      // Check saved preference or default to light (classic white Vignelli poster)
+      const savedTheme = localStorage.getItem('nyc2026-theme');
+      if (savedTheme === 'dark') {
+        applyTheme(true);
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+        const isCurrentlyDark = htmlEl.classList.contains('dark');
+        const nextDark = !isCurrentlyDark;
+        applyTheme(nextDark);
+        localStorage.setItem('nyc2026-theme', nextDark ? 'dark' : 'light');
+      });
+    });
+  </script>
+</body>
+</html>
